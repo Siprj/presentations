@@ -12,7 +12,10 @@ PANDOC_OPTS += -f markdown+smart
 
 TARGET_FILE = slides.html
 
-all: $(TARGET_FILE)
+all: reveal.js $(TARGET_FILE)
+
+reveal.js:
+	git clone https://github.com/hakimel/reveal.js/
 
 clean:
 	rm $(TARGET_FILE)
