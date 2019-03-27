@@ -1,0 +1,6 @@
+Title: Introduction to type level magic in Haskell
+
+Description: In this talk, we will implement type safe version simple `printf`
+function. And for that, we will have to show how some Haskell extensions work.
+Specifically we will talk about DataKinds, TypeFamilies and some other minor
+extensions.

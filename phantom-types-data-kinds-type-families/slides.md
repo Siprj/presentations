@@ -1,5 +1,5 @@
 ---
-title: How to be a type magician in haskell
+title: Introduction to type level magic in Haskell
 author: Jan Šipr <br/>[github.com/siprj](https://github.com/siprj)
 
 // TODO: date ....
@@ -147,6 +147,16 @@ a -> a :: *
 
 * TODO: Id
 * TODO: value restriction -> https://wiki.haskell.org/Phantom_type
+* TODO: EDSL
+
+
+## Multiparametric type classes
+
+
+## Functional Dependences
+
+
+## Type families
 
 
 ## Questions?
