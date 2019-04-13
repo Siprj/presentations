@@ -24,40 +24,73 @@ A phantom type is a parametrised type whose parameters do not all appear on
 the right-hand side of its definition.
 
 
-## Phantom type examples
+## How does phantom type look like?
 
-~~~ { .haskell }
+``` { .haskell }
 data Foo a = Foo Int
+```
+
+``` { .haskell }
 data Foo a b = Foo Int b
-~~~
+```
 
 
 ## This is not the Phantom type!!!
 
-~~~ { .haskell }
+``` { .haskell }
 type Foo a = String
-~~~
+```
 
 ::: notes
 
-* Type alias is expanded before type check.
+* Type aliases are expanded before type check.
 
 :::
 
 
-## Why should I care?
+## What can I do with phantom types? 1/3
 
-~~~ { .haskell }
+``` { .haskell }
 data Id a = Id Word64
-~~~
 
-~~~ { .haskell }
+type UserId = Id UserData
+
+type = Map UserId UserData
+```
+
+## What can I do with phantom types? 2/3
+
+``` { .haskell }
 data Distance a = Distance Word64
-~~~
 
-~~~ { .haskell }
+addDistances :: Distance a -> Distance a
+```
+
+## What can I do with phantom types? 3/3
+
+``` { .haskell }
 data Proxy a = Proxy
-~~~
+
+serve :: HasServer api '[] => Proxy api -> Server api -> Application
+```
+
+
+## Before kinds
+
+``` { .haskell }
+data Foo a = Bar | Baz
+```
+
+* `Foo a` is **type** constructor
+* `Bar`, `Baz` are **data** constructors
+
+::: notes
+
+Before `data kinds`.
+
+Explain what is `data constructor` and what is `type constructor`.
+
+:::
 
 
 ## Kinds
@@ -66,22 +99,44 @@ data Proxy a = Proxy
 * Exists only at compile time.
 
 
-~~~ { .haskell }
+``` { .haskell }
 Int :: *
-Maybe :: * -> *
+Maybe a :: * -> *
 Maybe Bool :: *
-a -> a :: *
-[] :: * -> *
+[a] :: * -> *
 (->) :: * -> * -> *
-~~~
+```
+
+::: notes
+
+* Explain what the star is and how you can use GHC to show it.
+* By default kinds are in GHC we just can't express it. That is where
+  `KindSignatures` comes in.
+
+:::
 
 
 ## GHC Extensions extending kinds
 
+* KindSignatures
 * ConstraintKinds
 * DataKinds
-* KindSignatures
 * PolyKinds
+
+
+## Kind signatures
+
+``` { .haskell }
+class Foo (a :: * -> *) where
+```
+
+``` { .haskell }
+class Bar (n :: *) where
+```
+
+``` { .haskell }
+data Baz (a :: * -> *) = Foo Int (a String)
+```
 
 
 ## Data kinds
@@ -90,78 +145,31 @@ a -> a :: *
 constructors_** into **_type constructors_**, which also promotes their
 **_type constructors_** into **_kind constructors_**.
 
-* Giving Haskell a Promotion
-
-
-## Type constructor vs. Data constructor
-
-~~~ { .haskell }
-data Foo a = Bar | Baz
-~~~
-
-* `Foo a` is **type** constructor
-* `Bar`, `Baz` are **data** constructors
-
-
-## Data kinds literals
-
-In `GHC.TypeLits` you can find:
-
-* `Nat`
-* `Symbol`
-* Conversion functions
-* Type classes
-* And many others
-
-
-## Data kinds literals examples
-
-~~~ { .haskell }
-foo :: Maybe "bar"
-foo2 :: Maybe 10
-~~~
-
-~~~ { .haskell }
-Maybe ("bar" :: Symbol)
-Maybe (10 :: Nat)
-~~~
-
-::: notes
-
-* Reference to easytensor
-
-:::
-
-
-## Kinds and constraints
-
-~~~ { .haskell }
-class KnownSymbol (n :: Symbol)
-~~~
-
-~~~ { .haskell }
-class KnownNat (n :: Nat)
-~~~
-
-::: notes
-
-* Some times we want to force some kind on unknown type.
-* Every literal like "hello" or 10 has these instance for above.
-
-:::
+* Based on paper Giving Haskell a Promotion
 
 
 ## Custom data kind definition
 
 Just like standard data structures:
 
-~~~ { .haskell }
+``` { .haskell }
 data Foo = Bar | Baz Foo
-~~~
+```
 
-~~~ { .haskell }
+``` { .haskell }
 data Foo a = Bar a
-~~~
+```
+
+
+## Data promotion
+
+* Quite often automatic
+* But sometimes we need to use apostrophe
+
+``` { .haskell }
+type Foo = ["hello", "world"]
+type Bar = "hello" ': "world" ': '[]
+```
 
 
 ## Promotion restrictions
@@ -172,27 +180,16 @@ data Foo a = Bar a
 
 ::: notes
 
-~~~ { .haskell }
+``` { .haskell }
 data Fix f = In (f (Fix f))
-~~~
+```
 
 :::
 
 
-## Data promotion
+## Id returns
 
-* Quite often automatic
-* But sometimes we need to use apostrophe
-
-~~~ { .haskell }
-type Foo = ["hello", "world"]
-type Bar = "hello" ': "world" ': '[]
-~~~
-
-
-## Id returns again
-
-~~~ { .haskell }
+``` { .haskell }
 data IdType = UserId | CarId
 
 data Id (a :: IdType) = Id
@@ -202,10 +199,34 @@ processUser id = ...
 
 processCar :: Id 'CarId -> IO ()
 processCar id = ...
-~~~
+```
 
 
-## Other Data kinds usage
+## Data kinds literals
+
+In `GHC.TypeLits` you can find:
+
+* `Nat`
+* `Symbol`
+* Conversion functions
+* Type classes
+* And many more
+
+
+## Data kinds literals examples
+
+``` { .haskell }
+foo :: Maybe "bar"
+foo2 :: Maybe 10
+```
+
+``` { .haskell }
+Maybe ("bar" :: Symbol)
+Maybe (10 :: Nat)
+```
+
+
+## Data kinds usage
 
 * EDSLs e.g. Servant
 * Type level numeric checks e.g. easytensor
@@ -216,23 +237,81 @@ processCar id = ...
 
 Requires extension `MultiParamTypeClasses`
 
-~~~ { .haskell }
+``` { .haskell }
 class Monad m => VarMonad m v where
-  new :: a -> m (v a)
-  get :: v a -> m a
-  put :: v a -> a -> m ()
+    new :: a -> m (v a)
+    get :: v a -> m a
+    put :: v a -> a -> m ()
 
 instance VarMonad IO IORef where ...
 instance VarMonad (ST s) (STRef s) where ...
-~~~
+```
 
 
 ## Functional Dependences
 
-Requires extension `MultiParamTypeClasses`
+* Requires extension `FunctionalDependencies`
+* Allows as to specify dependencies between the parameters of a multiple
+  parameter class
 
 
+##  Coll 1
 
+``` { .haskell }
+class Coll s a where
+    empty :: s
+    insert :: a -> s -> s
+
+instance Coll [Int] Double where
+    empty = []
+    insert a s = cons (fromIntegral a) s
+```
+
+``` { .haskell }
+foo = empty
+```
+
+
+## Coll 2
+
+``` { .haskell }
+class Coll s a | s -> a where
+    empty :: s
+    insert :: a -> s -> s
+
+instance Coll [Int] Double where
+    empty = []
+    insert a s = cons (fromIntegral a) s
+```
+
+``` { .haskell }
+foo = empty
+```
+
+## Another example
+
+``` { .haskell }
+class D a b | a -> b where
+
+-- Ok
+instance D Bool Int where ...
+
+-- Bad
+instance D Bool Char where ...
+```
+
+``` { .haskell }
+class E a b | a -> b, b -> a where
+
+-- Ok
+instance E Int Char where ...
+instance E Bool Double where ...
+instance E Double Bool where ...
+
+-- Bad
+instance E Int Word32 where ...
+instance E Char Double where ...
+```
 
 
 ## Type families
