@@ -1,9 +1,9 @@
 ---
-title: Introduction to type level magic in Haskell
+title: Encode your Semantics in Types
+subtitle: Introduction to Type-level Programming in Haskell
 author: Jan Šipr <br/>[github.com/siprj](https://github.com/siprj)
 
-// TODO: date ....
-date: 
+date: April 14, 2019
 ---
 
 
@@ -11,11 +11,11 @@ date:
 
 [//]: # (Do I need phantom types???)
 * Phantom types
-* Data Kinds
+* Data kinds
 * Multi-parameter type classes
-* Functional Dependences
-* Type Families
-* Short live coding session
+* Functional dependences
+* Type families
+* Live coding session
 
 
 ## What is a Phantom type?
@@ -48,7 +48,7 @@ type Foo a = String
 :::
 
 
-## What can I do with phantom types? 1/3
+## What can I do with phantom types?
 
 ``` { .haskell }
 data Id a = Id Word64
@@ -58,7 +58,7 @@ type UserId = Id UserData
 type = Map UserId UserData
 ```
 
-## What can I do with phantom types? 2/3
+## What can I do with phantom types?
 
 ``` { .haskell }
 data Distance a = Distance Word64
@@ -66,7 +66,7 @@ data Distance a = Distance Word64
 addDistances :: Distance a -> Distance a
 ```
 
-## What can I do with phantom types? 3/3
+## What can I do with phantom types?
 
 ``` { .haskell }
 data Proxy a = Proxy
@@ -75,7 +75,7 @@ serve :: HasServer api '[] => Proxy api -> Server api -> Application
 ```
 
 
-## Before kinds
+## Before data kinds
 
 ``` { .haskell }
 data Foo a = Bar | Baz
@@ -93,7 +93,7 @@ Explain what is `data constructor` and what is `type constructor`.
 :::
 
 
-## Kinds
+## Data kinds
 
 * In type theory kind is type of a type.
 * Exists only at compile time.
@@ -202,7 +202,7 @@ processCar id = ...
 ```
 
 
-## Data kinds literals
+## Type literals
 
 In `GHC.TypeLits` you can find:
 
@@ -213,7 +213,7 @@ In `GHC.TypeLits` you can find:
 * And many more
 
 
-## Data kinds literals examples
+## Type literals examples
 
 ``` { .haskell }
 foo :: Maybe "bar"
@@ -230,7 +230,6 @@ Maybe (10 :: Nat)
 
 * EDSLs e.g. Servant
 * Type level numeric checks e.g. easytensor
-* guarantee well-formedness
 
 
 ## Multi-parameter type classes
@@ -255,14 +254,14 @@ instance VarMonad (ST s) (STRef s) where ...
   parameter class
 
 
-##  Coll 1
+##  Collection
 
 ``` { .haskell }
-class Coll s a where
+class Collection s a where
     empty :: s
     insert :: a -> s -> s
 
-instance Coll [Int] Double where
+instance Collection [Int] Double where
     empty = []
     insert a s = cons (fromIntegral a) s
 ```
@@ -272,14 +271,14 @@ foo = empty
 ```
 
 
-## Coll 2
+## Collection
 
 ``` { .haskell }
-class Coll s a | s -> a where
+class Collection s a | s -> a where
     empty :: s
     insert :: a -> s -> s
 
-instance Coll [Int] Double where
+instance Collection [Int] Double where
     empty = []
     insert a s = cons (fromIntegral a) s
 ```
@@ -287,6 +286,7 @@ instance Coll [Int] Double where
 ``` { .haskell }
 foo = empty
 ```
+
 
 ## Another example
 
@@ -316,8 +316,107 @@ instance E Char Double where ...
 
 ## Type families
 
+* Requires extension `TypeFamilies`
+* Data type family
+* Type synonym family
+
+
+## Where can we use type families
+
+* They can appear inside type classes
+* They can be defined on the toplevel
+  * They can be closed
+  * They can be opened
+
+
+## Data type families on top level
+
+``` { .haskell }
+data family XList a
+
+data instance XList Char = XCons !Char !(XList Char) | XNil
+data instance XList () = XListUnit !Int
+```
+
+
+## Associated data type families
+
+``` { .haskell }
+class GMapKey k where
+    data GMap k :: * -> *
+    empty :: GMap k v
+    lookup :: k -> GMap k v -> Maybe v
+
+instance GMapKey Int where
+    data GMap Int v = GMapInt (Data.IntMap.IntMap v)
+    empty = GMapInt Data.IntMap.empty
+    lookup k (GMapInt m) = Data.IntMap.lookup k m
+```
+
+
+## Where would I use data families
+
+* In generic collections.
+* When I need to associated type class and type.
+* In protocol implementations (e.g. JSON RPC).
+* And in many other cases.
+
+
+## Open type synonym
+
+``` { .haskell }
+type family F a :: *
+
+type instance F [Int] = Int
+type instance F String = Char
+```
+
+
+## Closed type synonym
+
+``` { .haskell }
+type family F2 a where
+  F2 (Maybe Int)  = Int
+  F2 (Maybe Bool) = Bool
+```
+
+
+## Closed type synonym families and data kinds
+
+``` { .haskell }
+data Foo = I | D
+
+type family Bar (a :: Foo) where
+  Bar I = Int
+  Bar D = Double
+```
+
+
+## Associated type synonym families
+
+``` { .haskell}
+class Collection ce where
+    type Elem ce
+    empty :: ce
+    insert :: Elem ce -> ce -> ce
+
+instance Collection [e] where
+    type Elem [e]   = e
+    empty           = []
+    insert e l      = (e:l)
+```
+
+
+## Where would I use type synonym families
+
+* EDSLs like (e.g servant)
+* Whenever you need function on type level.
+
+
+## Live coding session
+
+...
 
 ## Questions?
 
-* Thank you for your attention.
-* Slides will be available at [github.com/siprj/presentations](https://github.com/siprj/presentations)
+Thank you for your attention.

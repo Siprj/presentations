@@ -27,27 +27,36 @@ data Format
     | D
     | S
 
+type Msg = [Lit "Number: ", D, Lit " and string: ", S]
+
 class FormatFunction (format :: [Format]) fun | format -> fun where
     formatFunction :: String -> fun
 
 instance FormatFunction '[] String where
     formatFunction = id
 
-instance (FormatFunction format fun) => FormatFunction (S ': format) (String -> fun) where
+instance
+    FormatFunction format fun
+    => FormatFunction (S ': format) (String -> fun)
+  where
     formatFunction str s = formatFunction @format $ str <> s
 
-instance FormatFunction format fun => FormatFunction (D ': format) (Int -> fun) where
+instance
+    FormatFunction format fun
+    => FormatFunction (D ': format) (Int -> fun)
+  where
     formatFunction str i = formatFunction @format $ str <> show i
 
-instance (FormatFunction format fun, KnownSymbol symbol) => FormatFunction (Lit symbol ': format) fun where
+instance
+    (FormatFunction format fun, KnownSymbol symbol)
+    => FormatFunction (Lit symbol ': format) fun
+  where
     formatFunction str =
         formatFunction @format $ str <> symbolVal (Proxy @symbol)
 
 printf :: forall format fun. FormatFunction format fun => fun
 printf = formatFunction @format ""
 
-
-type Msg = [Lit "Number: ", D, Lit " and string: ", S]
 
 type family FromString (a :: [Symbol]) :: [Format] where
     FromString ("%" ': "d" ': xs) = D ': FromString xs
@@ -59,7 +68,13 @@ type family FromLiteral (a :: Symbol) (b :: [Format]) :: [Format] where
     FromLiteral c (Lit s ': xs) = Lit (AppendSymbol c s) ': xs
     FromLiteral c xs = Lit c ': xs
 
-printf2 :: forall format list parsed fun. (Listify format list, FromString list ~ parsed, FormatFunction parsed fun) => fun
+printf2
+    :: forall format list parsed fun
+    . ( Listify format list
+    , FromString list ~ parsed
+    , FormatFunction parsed fun
+    )
+    => fun
 printf2 = formatFunction @parsed ""
 
 main :: IO ()
