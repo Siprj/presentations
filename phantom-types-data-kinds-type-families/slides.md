@@ -409,7 +409,7 @@ instance Collection [e] where
 
 ## Where would I use type synonym families
 
-* EDSLs like (e.g servant)
+* EDSLs like (e.g. servant)
 * Whenever you need function on type level.
 
 
