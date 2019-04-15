@@ -35,7 +35,7 @@ data Foo a b = Foo Int b
 ```
 
 
-## This is not the Phantom type!!!
+## This is not a Phantom type!!!
 
 ``` { .haskell }
 type Foo a = String
@@ -101,9 +101,16 @@ Explain what is `data constructor` and what is `type constructor`.
 
 ``` { .haskell }
 Int :: *
-Maybe a :: * -> *
-Maybe Bool :: *
 [a] :: * -> *
+```
+
+``` { .haskell }
+MaybeT m a :: (* -> *) -> * -> *
+MaybeT [] a :: * -> *
+MaybeT [] Int :: *
+```
+
+``` { .haskell }
 (->) :: * -> * -> *
 ```
 
@@ -157,7 +164,7 @@ data Foo = Bar | Baz Foo
 ```
 
 ``` { .haskell }
-data Foo a = Bar a
+data Quux a = Gorge a
 ```
 
 
@@ -194,10 +201,10 @@ data IdType = UserId | CarId
 
 data Id (a :: IdType) = Id
 
-processUser :: Id 'UserId -> IO ()
+processUser :: Id UserId -> IO ()
 processUser id = ...
 
-processCar :: Id 'CarId -> IO ()
+processCar :: Id CarId -> IO ()
 processCar id = ...
 ```
 
@@ -317,8 +324,8 @@ instance E Char Double where ...
 ## Type families
 
 * Requires extension `TypeFamilies`
-* Data type family
-* Type synonym family
+* Data type families
+* Type synonym families
 
 
 ## Where can we use type families
