@@ -55,7 +55,7 @@ data Id a = Id Word64
 
 type UserId = Id UserData
 
-type = Map UserId UserData
+type UserMap = Map UserId UserData
 ```
 
 ## What can I do with phantom types?
