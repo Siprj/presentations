@@ -101,7 +101,7 @@ Explain what is `data constructor` and what is `type constructor`.
 
 ``` { .haskell }
 Int :: *
-[a] :: * -> *
+[] :: * -> *
 ```
 
 ``` { .haskell }
