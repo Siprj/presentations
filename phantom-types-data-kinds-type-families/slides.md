@@ -233,7 +233,7 @@ Maybe (10 :: Nat)
 ```
 
 
-## Data kinds usage
+## Type literals examples
 
 * EDSLs e.g. Servant
 * Type level numeric checks e.g. easytensor
