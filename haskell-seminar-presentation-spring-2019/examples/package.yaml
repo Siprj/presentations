@@ -1,0 +1,72 @@
+name: example
+version: 0.1.0.0
+github: "Siprj/presensions"
+license: BSD3
+author: "Jan Sipr"
+maintainer: "sipr.jan@gmail.com"
+copyright: "2018 Jan Sipr"
+
+# extra-source-files:
+
+# Metadata used when publishing your package
+synopsis: example
+category: Web
+
+description: >
+    Example
+
+flags:
+  pedantic:
+    description: Pass additional warning flags and -Werror to GHC.
+    default: True
+    manual: True
+
+dependencies:
+  - base >= 4.7 && < 5
+  - acid-state
+  - aeson
+  - attoparsec
+  - bytestring
+  - containers
+  - cryptonite
+  - data-default
+  - feed
+  - freer-effects
+  - HandsomeSoup
+  - haskell-src-exts
+  - haskell-src-meta
+  - http-media
+  - hxt
+  - hxt-css
+  - lens
+  - megaparsec
+  - mtl
+  - network-uri
+  - parser-combinators
+  - pretty-simple
+  - safecopy
+  - servant
+  - servant-server
+  - split
+  - stm
+  - template-haskell
+  - text
+  - time
+  - transformers
+  - vector
+  - wai
+  - warp
+  - wreq
+  - xml
+  - xml-conduit
+
+executables:
+  example:
+    main: Main.hs
+    source-dirs: src
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+      - -Wimplicit-prelude
+      - -Wmissing-import-lists

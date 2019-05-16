@@ -101,28 +101,9 @@ date: 13 May 2018
 * servant
 * template-haskell
 
-## Servant example
+## Example(s)
 
-~~~ { .haskell file=Fruit1.hs }
-type ItemApi =
-    -- GET /item
-    "item" :> Get '[JSON] [Item] :<|>
-    -- GET /item/:itemId
-    "item" :> Capture "itemId" Integer :> Get '[JSON] Item
-
-getItems :: Handler [Item]
-getItems = return [exampleItem]
-
-getItemById :: Integer -> Handler Item
-getItemById = \case
-    0 -> return exampleItem
-    _ -> throwE err404
-
-server :: Server ItemApi
-server = getItems :<|> getItemById
-~~~
-
-Taken form [example-servant-minimal](https://github.com/haskell-servant/example-servant-minimal).
+...
 
 ## Questions?
 
