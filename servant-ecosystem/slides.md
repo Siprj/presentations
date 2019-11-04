@@ -123,6 +123,19 @@ type Api = "users" :>  QueryParam "sortby" SortBy :> Get '[JSON] User
 ```
 
 
+## Request body
+
+``` { .haskell }
+"user" :> "create" :> ReqBody '[JSON] User :> Post '[JSON] UserId
+```
+
+``` { .haskell }
+data ReqBody (contentTypes :: [*]) (a :: *)
+```
+
+## Content types
+
+
 ## What is a Phantom type?
 
 A phantom type is a parametrised type whose parameters do not all appear on
