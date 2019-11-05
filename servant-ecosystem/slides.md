@@ -386,12 +386,85 @@ getBooksByBookId capture_bookId =
 ```
 
 
-## Authentication
+## Basic Authentication
+
+``` { .haskell }
+type API = "public"  :> PublicAPI
+    :<|> "private" :> BasicAuth "foo-realm" User :> Get '[JSON] Stuff
+
+privateHandler :: User -> ServerT ServerError IO Stuff
+privateHandler user = ...
+```
 
 
-## Live coding session
+## Basic Authentication
+
+``` { .haskell }
+data BasicAuthResult usr
+  = Unauthorized
+  | BadPassword
+  | NoSuchUser
+  | Authorized usr
+  deriving (Eq, Show, Read, Generic, Typeable, Functor)
+
+checkUser :: BasicAuthData -> IO (BasicAuthResult usr)
+checkUser (BasicAuthData username password) = ...
+```
+
+## Basic Authentication
+
+``` { .haskell }
+serveWithContext
+    :: HasServer api context
+    => Proxy api
+    -> Context context
+    -> Server api
+    -> Application
+```
+
+
+## Basic Authentication
+
+``` { .haskell }
+authCheck :: BasicAuthCheck User
+authCheck = BasicAuthCheck checkUser
+
+basicAuthContext :: Context (BasicAuthCheck User ': '[])
+basicAuthContext = authCheck :. EmptyContext
+
+main :: IO ()
+main = run 8080 (serveWithContext api
+    basicAuthServerContext basicAuthServer)
+```
+
+## Generalized authentication
+
+``` { .haskell }
+type Api = "user" :> AuthProtect "token-auth"
+    :> Get '[JSON] PrivateData
+
+-- authHandler :: Request -> ExceptT ServerError IO a
+authHandler :: Request -> ExceptT ServerError IO AuthenticatedUser
+authHandler req = ...
+
+-- Type family representing authenticated user
+-- for given authentication method
+type instance AuthServerData (AuthProtect "cookie-auth") =
+    AuthenticatedUser
+```
+
+## Generalized authentication
+
+``` { .haskell }
+authContext :: Context (BasicAuthCheck User ': '[])
+authContext = mkAuthHandler authHandler :. EmptyContext
+```
+
+
+## Example
 
 ...
+
 
 ## Questions?
 
