@@ -14,7 +14,6 @@ date: Nov 3, 2019
 * Querying an API
 * Generating non haskell client
 * Authentication
-* List of some interested packages
 * Example of CLI application
 
 
