@@ -129,7 +129,7 @@ data QueryFlag (sym :: Symbol)
 data SortBy = Age | Name
 
 -- equivalent to 'GET /users?sortby=(age,name)/'
-type Api = "users" :> QueryParam "sortby" SortBy 
+type Api = "users" :> QueryParam "sortby" SortBy
     :> Get '[JSON] User
 ```
 
@@ -137,7 +137,7 @@ type Api = "users" :> QueryParam "sortby" SortBy
 ## Request body
 
 ``` { .haskell }
-type Api = "user" :> "create" 
+type Api = "user" :> "create"
     :> ReqBody '[JSON] User :> Post '[JSON] UserId
 ```
 
@@ -171,22 +171,55 @@ serve :: HasServer api '[]
 
 ``` { .haskell }
 type Api = "books" :> Get '[JSON] [Book]
-    :<|> Capture "bookId" :> Get '[JSON] Book
+
+handler :: Server Api
+handler = pure bookList
 
 apiProxy :: Proxy Api
 apiProxy = Proxy
-
-findBook :: ExceptT ServerError IO Book
-findBook bookId = pure $ Book
-
-handler :: Server Api
-handler = pure globalListOfBooks
-    :<|> findBook
 
 serverApp :: Application
 serverApp = serve apiProxy server
 
 main = run 8080 server
+```
+
+
+## Handlers
+
+``` { .haskell }
+type Api = "books" :> Get '[JSON] [Book]
+    :<|> Capture "bookId" Int :> Get '[JSON] Book
+
+handler :: Server Api
+handler = (pure globalListOfBooks)
+    :<|> findBook
+
+apiProxy :: Proxy Api
+apiProxy = Proxy
+
+findBook :: Int -> ExceptT ServerError IO Book
+findBook bookId = pure $ Book
+```
+
+
+## Handlers types
+
+``` { .haskell }
+data QueryParam (sym :: Symbol) a
+data Capture (sym :: Symbol) a
+
+data Header' (mods :: [*]) (sym :: Symbol) a
+type Header = Header' '[Optional, Strict]
+```
+
+
+## Handlers types
+
+``` { .haskell }
+type Api = QueryParam "somethig" Text :> Capture "bookId" Int :> Get '[JSON] Book
+
+handler :: Maybe Text -> Int -> ServerT ServerError IO
 ```
 
 
@@ -197,6 +230,163 @@ main = run 8080 server
 * `FormUrlEncoded`
 * `OctetStream`
 * and many more in separate packages
+
+
+## Content types
+
+``` { .haskell }
+type Api = Get '[JSON, FormUrlEncoded] Book
+-- Book needs to have instances for:
+--   * ToForm
+--   * ToJson
+
+-- In some cases Content Type forces return value.
+type Api = Get '[PlainText] Text
+type Api = Get '[PlainText] String
+```
+
+
+## Querying API
+
+``` { .haskell }
+client :: HasClient ClientM api
+    => Proxy api -> Client ClientM api
+```
+
+
+## Query functions
+
+``` { .haskell }
+type API = "book" :> Capture "bookId" Int :> Get '[JSON] Book
+    :<|> "hello" :> QueryParam "name" String :> Get '[JSON] HelloMessage
+
+api :: Proxy Api
+api = Proxy
+
+book :<|> hello = client api
+
+book :: Int -> ClientM Book
+hello :: Maybe String -> ClientM HelloMessage
+```
+
+## Running query functions
+
+``` { .haskell }
+runClientM
+    :: ClientM a
+    -> ClientEnv
+    -> IO (Either ClientError a)
+```
+
+
+## Running query functions
+
+``` { .haskell }
+book :: Int -> ClientM Book
+hello :: Maybe String -> ClientM HelloMessage
+
+run :: IO ()
+run = do
+    manager' <- newManager defaultManagerSettings
+    _ <- runClientM (book 10)
+        (mkClientEnv manager' (BaseUrl Http "localhost" 8081 ""))
+```
+
+
+## Non haskell clients
+
+* servant-js
+* servant-elm
+* servant-purescript
+* servant-ruby
+* servant-kotlin
+* ...
+
+
+## Elm client
+
+``` { .haskell }
+data Book = Book
+    { name :: String
+    }
+
+deriveBoth defaultOptions ''Book
+
+type BooksApi = "books" :> Capture "bookId" Int :> Get '[JSON] Book
+
+main :: IO ()
+main =
+  generateElmModuleWith
+    defElmOptions ["Generated", "MyApi"]
+    defElmImports "my-elm-dir" [DefineElm (Proxy :: Proxy Book)]
+    (Proxy :: Proxy BooksApi)
+```
+
+
+## Elm client
+
+
+``` { .haskell }
+module Generated.MyApi exposing(..)
+
+import Json.Decode
+import Json.Encode exposing (Value)
+-- The following module comes from bartavelle/json-helpers
+import Json.Helpers exposing (..)
+import Dict exposing (Dict)
+import Set
+import Http
+import String
+import Url.Builder
+
+type alias Book  =
+   { name: String
+   }
+
+jsonDecBook : Json.Decode.Decoder ( Book )
+jsonDecBook =
+   Json.Decode.succeed (\pname -> {name = pname})
+   |> required "name" (Json.Decode.string)
+
+jsonEncBook : Book -> Value
+jsonEncBook  val =
+   Json.Encode.object
+   [ ("name", Json.Encode.string val.name)
+   ]
+
+
+getBooksByBookId : Int -> Http.Request Book
+getBooksByBookId capture_bookId =
+    let
+        params =
+            List.filterMap identity
+            (List.concat
+                [])
+    in
+        Http.request
+            { method =
+                "GET"
+            , headers =
+                []
+            , url =
+                Url.Builder.absolute
+                    [ "books"
+                    , capture_bookId |> String.fromInt
+                    ]
+                    params
+            , body =
+                Http.emptyBody
+            , expect =
+                Http.expectJson <| jsonDecBook
+            , timeout =
+                Nothing
+            , withCredentials =
+                False
+            }
+```
+
+
+## Authentication
 
 
 ## Live coding session
