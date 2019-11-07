@@ -29,6 +29,9 @@ dependencies:
   - text
   - transformers
   - servant-cli
+  - servant-server
+  - servant-docs
+  - warp
 
 library:
   source-dirs: src
@@ -53,17 +56,6 @@ executables:
       - servant-server
       - wai
       - warp
-
-  cli:
-    main: Main.hs
-    source-dirs: app/cli
-    ghc-options:
-      - -threaded
-      - -rtsopts
-      - -with-rtsopts=-N
-      - -Wimplicit-prelude
-    dependencies:
-      - example
 
   doc:
     main: Main.hs

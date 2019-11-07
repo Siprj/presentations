@@ -1,10 +1,11 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 
 module Api
@@ -15,6 +16,7 @@ module Api
     )
   where
 
+import GHC.Generics
 import Data.Aeson
 import Data.Aeson.TH
 import Data.Int
@@ -22,6 +24,8 @@ import Data.Proxy
 import Data.String
 import Data.Text
 import Servant.API
+import Servant.Docs
+import Servant.Docs.Internal
 import Text.Read
 import Text.Show
 
@@ -31,7 +35,7 @@ data Book = Book
     , note :: Text
     , numberOfPages :: Int
     }
-  deriving (Show, Read)
+  deriving (Show, Read, Generic)
 
 $(deriveJSON defaultOptions ''Book)
 
@@ -54,3 +58,13 @@ type Api =
     :<|> Summary "Get book by name" :> "books"
         :> Capture "bookName" Text
         :> Get '[JSON] Book
+
+instance ToSample Book where
+    toSamples _ = singleSample (Book "name" "some note" 10)
+
+instance ToCapture (Capture "bookName" Text) where
+    toCapture _ = DocCapture "book name" "name of the book you want to retrieve"
+
+instance ToAuthInfo (BasicAuth "our-realm" User) where
+    toAuthInfo _ = DocAuthentication "basic authentication"
+        "provide username and password"
