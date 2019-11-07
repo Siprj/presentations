@@ -28,6 +28,7 @@ dependencies:
   - swagger2
   - text
   - transformers
+  - servant-cli
 
 library:
   source-dirs: src
@@ -63,7 +64,6 @@ executables:
       - -Wimplicit-prelude
     dependencies:
       - example
-      - servant-cli
 
   doc:
     main: Main.hs

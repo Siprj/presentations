@@ -44,6 +44,13 @@ api :: Proxy Api
 api = Proxy
 
 type Api =
-    "books" :> BasicAuth "our-realm" User :> ReqBody '[JSON] Book :> PutNoContent '[JSON] NoContent
-    :<|> "books" :> Get '[JSON] [Book]
-    :<|> "books" :> Capture "bookName" Text :> Get '[JSON] Book
+    Summary "Create book" :> "books"
+        :> BasicAuth "our-realm" User
+        :> ReqBody '[JSON] Book
+        :> PutNoContent '[JSON] NoContent
+    :<|> Summary "List all books"
+        :> "books"
+        :> Get '[JSON] [Book]
+    :<|> Summary "Get book by name" :> "books"
+        :> Capture "bookName" Text
+        :> Get '[JSON] Book

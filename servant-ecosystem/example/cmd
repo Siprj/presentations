@@ -1,0 +1,5 @@
+curl -v -X PUT -H "Content-Type: application/json" --user admin:servant -d '{"name":"book1","note":"", "numberOfPages": 50}' http://localhost:8080/books/
+curl -v -X PUT -H "Content-Type: application/json" --user admin:servant -d '{"name":"book2","note":"", "numberOfPages": 10}' http://localhost:8080/books/
+
+curl -v http://localhost:8080/books | jq .
+curl -v http://localhost:8080/books/book1 | jq .
