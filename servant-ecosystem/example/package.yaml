@@ -1,0 +1,78 @@
+name:                example
+version:             0.1.0.0
+#synopsis:
+homepage:            https://github.com/Siprj/example#readme
+license:             MIT
+author:              Jan Sipr
+maintainer:          sipr.jan@gmail.com
+copyright:           2019 Jan Sipr
+category:            example
+extra-source-files:
+- README.md
+
+description: >
+    Please see the README on Github at 
+    <https://github.com/Siprj/example#readme>
+
+flags:
+  pedantic:
+    description: Pass additional warning flags and -Werror to GHC.
+    default: True
+    manual: True
+
+dependencies:
+  - base >= 4.7 && < 5
+  - aeson
+  - mtl
+  - servant
+  - servant-pandoc
+  - text
+  - transformers
+
+library:
+  source-dirs: src
+  ghc-options:
+    - -Wall
+    - -Wimplicit-prelude
+  when:
+    - condition: flag(pedantic)
+      ghc-options: -Werror
+
+executables:
+  server:
+    main: Main.hs
+    source-dirs: app/server
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+      - -Wimplicit-prelude
+    dependencies:
+      - example
+      - servant-server
+      - wai
+      - warp
+
+  cli:
+    main: Main.hs
+    source-dirs: app/cli
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+      - -Wimplicit-prelude
+    dependencies:
+      - example
+      - servant-cli
+
+  doc:
+    main: Doc.hs
+    source-dirs: app/doc
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+      - -Wimplicit-prelude
+    dependencies:
+      - example
+      - servant-cli

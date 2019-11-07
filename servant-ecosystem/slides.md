@@ -202,7 +202,7 @@ findBook bookId = pure $ Book
 ```
 
 
-## Handlers types
+## Handler types
 
 ``` { .haskell }
 data QueryParam (sym :: Symbol) a
@@ -213,10 +213,11 @@ type Header = Header' '[Optional, Strict]
 ```
 
 
-## Handlers types
+## Handler types
 
 ``` { .haskell }
-type Api = QueryParam "somethig" Text :> Capture "bookId" Int :> Get '[JSON] Book
+type Api = QueryParam "somethig" Text :> Capture "bookId" Int 
+    :> Get '[JSON] Book
 
 handler :: Maybe Text -> Int -> ServerT ServerError IO
 ```
@@ -256,8 +257,10 @@ client :: HasClient ClientM api
 ## Query functions
 
 ``` { .haskell }
-type API = "book" :> Capture "bookId" Int :> Get '[JSON] Book
-    :<|> "hello" :> QueryParam "name" String :> Get '[JSON] HelloMessage
+type API = 
+    "book" :> Capture "bookId" Int :> Get '[JSON] Book
+    :<|> "hello" :> QueryParam "name" String 
+        :> Get '[JSON] HelloMessage
 
 api :: Proxy Api
 api = Proxy
