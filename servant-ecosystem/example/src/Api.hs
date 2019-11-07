@@ -1,21 +1,33 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 
 module Api
     ( Api
-    , User
-    , Book
+    , OurApi
+    , SwaggerApi
+    , User(..)
+    , Book(..)
+    , api
+    , ourApi
     )
   where
 
 import Data.Aeson
-import Data.Aeson.TH
+import Data.Int
+import Data.Proxy
 import Data.String
 import Data.Text
+import GHC.Generics
 import Servant.API
+import Servant.Swagger.UI
 import Text.Read
 import Text.Show
 
@@ -23,18 +35,29 @@ import Text.Show
 data Book = Book
     { name :: Text
     , note :: Text
-    , numberOfPages :: Text
+    , numberOfPages :: Int
     }
-  deriving (Show, Read)
+  deriving (Show, Read, Generic)
 
-$(deriveJSON defaultOptions ''Book)
+instance ToJSON Book
+instance FromJSON Book
 
 newtype User = User
     { userName :: String
     }
   deriving (Show, Read)
 
-type Api =
-    "books" :> BasicAuth "our-realm" User :> Post '[JSON] Book
+type OurApi =
+    "books" :> BasicAuth "our-realm" User :> ReqBody '[JSON] Book :> PutNoContent '[JSON] NoContent
     :<|> "books" :> Get '[JSON] [Book]
-    :<|> "books" :> Capture "bookName" :> Get '[JSON] Book
+    :<|> "books" :> Capture "bookName" Text :> Get '[JSON] Book
+
+ourApi :: Proxy OurApi
+ourApi = Proxy
+
+type SwaggerApi = SwaggerSchemaUI "swagger-ui" "swagger.json"
+
+api :: Proxy Api
+api = Proxy
+
+type Api = OurApi :<|> SwaggerApi

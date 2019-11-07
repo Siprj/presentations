@@ -219,7 +219,7 @@ type Header = Header' '[Optional, Strict]
 type Api = QueryParam "somethig" Text :> Capture "bookId" Int 
     :> Get '[JSON] Book
 
-handler :: Maybe Text -> Int -> ServerT ServerError IO
+handler :: Maybe Text -> Int -> Handler Book
 ```
 
 
@@ -394,7 +394,7 @@ getBooksByBookId capture_bookId =
 type API = "public"  :> PublicAPI
     :<|> "private" :> BasicAuth "foo-realm" User :> Get '[JSON] Stuff
 
-privateHandler :: User -> ServerT ServerError IO Stuff
+privateHandler :: User -> Handler Stuff
 privateHandler user = ...
 ```
 
@@ -436,7 +436,7 @@ basicAuthContext = authCheck :. EmptyContext
 
 main :: IO ()
 main = run 8080 (serveWithContext api
-    basicAuthServerContext basicAuthServer)
+    basicAuthContext basicAuthServer)
 ```
 
 ## Generalized authentication

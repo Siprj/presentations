@@ -25,7 +25,9 @@ dependencies:
   - aeson
   - mtl
   - servant
-  - servant-pandoc
+  - servant-swagger
+  - servant-swagger-ui
+  - swagger2
   - text
   - transformers
 
@@ -66,7 +68,7 @@ executables:
       - servant-cli
 
   doc:
-    main: Doc.hs
+    main: Main.hs
     source-dirs: app/doc
     ghc-options:
       - -threaded

@@ -1,9 +1,90 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Main where
 
-import System.IO (IO)
+import Control.Applicative
+import Control.Monad
+import Control.Monad.Except
+import Control.Monad.Trans.Reader
+import Data.Bool
+import Data.Eq
+import qualified Data.Foldable as F
+import Data.Function
+import Data.IORef
+import Data.Maybe
+import Data.Text
+import Network.Wai.Handler.Warp
+import Servant
+import Servant.Swagger
+import Servant.Swagger.UI
+import System.IO
 
-import Lib (doStuff)
+import Api
+
+
+data HandlerCfg = HandlerCfg
+    { appState :: IORef [Book]
+    }
+
+type AppHandler = ReaderT HandlerCfg Handler
+type AppServer api = ServerT api AppHandler
+
+createBook :: User -> Book -> AppHandler NoContent
+createBook User{..} book =
+    if userName /= "admin"
+        then throwError err403
+        else do
+            HandlerCfg{..} <- ask
+            void . liftIO $ modifyIORef' appState $ \books -> book : books
+            pure NoContent
+
+listBooks :: AppHandler [Book]
+listBooks = do
+    HandlerCfg{..} <- ask
+    liftIO $ readIORef appState
+
+getBookByName :: Text -> AppHandler Book
+getBookByName bookName = do
+    HandlerCfg{..} <- ask
+    books <- liftIO $ readIORef appState
+    maybe (throwError err404) pure $ F.find (\Book{..} -> name == bookName) books
+
+server :: AppServer OurApi
+server = createBook :<|> listBooks :<|> getBookByName
+
+checkUser :: BasicAuthData -> IO (BasicAuthResult User)
+checkUser (BasicAuthData username password) =
+    if username == "admin" && password == "servant"
+        then return (Authorized (User "admin"))
+        else return Unauthorized
+
+authCheck :: BasicAuthCheck User
+authCheck = BasicAuthCheck checkUser
+
+basicAuthContext :: Context (BasicAuthCheck User ': '[])
+basicAuthContext = authCheck :. EmptyContext
+
+nat :: HandlerCfg -> AppHandler a -> Handler a
+nat cfg x = runReaderT x cfg
+
+instance (HasSwagger api) => HasSwagger (BasicAuth "our-real" User :> api) where
+    toSwagger _ = toSwagger (Proxy :: Proxy api)
+
+serverWithSwagger :: HandlerCfg -> Server Api
+serverWithSwagger cfg =
+    hoistServerWithContext ourApi (Proxy :: Proxy '[BasicAuthCheck User]) (nat cfg) server
+    :<|> swaggerSchemaUIServer (toSwagger ourApi)
+
+app :: HandlerCfg -> Application
+app cfg = serveWithContext api basicAuthContext (serverWithSwagger cfg)
 
 main :: IO ()
-main = doStuff
+main = do
+    state <- newIORef []
+    run 8080 (app $ HandlerCfg state)
