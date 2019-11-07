@@ -3,8 +3,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 
 module Main where
 
@@ -21,8 +19,6 @@ import Data.Maybe
 import Data.Text
 import Network.Wai.Handler.Warp
 import Servant
-import Servant.Swagger
-import Servant.Swagger.UI
 import System.IO
 
 import Api
@@ -55,7 +51,7 @@ getBookByName bookName = do
     books <- liftIO $ readIORef appState
     maybe (throwError err404) pure $ F.find (\Book{..} -> name == bookName) books
 
-server :: AppServer OurApi
+server :: AppServer Api
 server = createBook :<|> listBooks :<|> getBookByName
 
 checkUser :: BasicAuthData -> IO (BasicAuthResult User)
@@ -73,16 +69,10 @@ basicAuthContext = authCheck :. EmptyContext
 nat :: HandlerCfg -> AppHandler a -> Handler a
 nat cfg x = runReaderT x cfg
 
-instance (HasSwagger api) => HasSwagger (BasicAuth "our-real" User :> api) where
-    toSwagger _ = toSwagger (Proxy :: Proxy api)
-
-serverWithSwagger :: HandlerCfg -> Server Api
-serverWithSwagger cfg =
-    hoistServerWithContext ourApi (Proxy :: Proxy '[BasicAuthCheck User]) (nat cfg) server
-    :<|> swaggerSchemaUIServer (toSwagger ourApi)
-
 app :: HandlerCfg -> Application
-app cfg = serveWithContext api basicAuthContext (serverWithSwagger cfg)
+app cfg = serveWithContext api basicAuthContext
+    $ hoistServerWithContext api (Proxy :: Proxy '[BasicAuthCheck User])
+        (nat cfg) server
 
 main :: IO ()
 main = do

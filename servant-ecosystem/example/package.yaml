@@ -25,8 +25,6 @@ dependencies:
   - aeson
   - mtl
   - servant
-  - servant-swagger
-  - servant-swagger-ui
   - swagger2
   - text
   - transformers
