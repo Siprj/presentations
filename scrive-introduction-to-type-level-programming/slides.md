@@ -2,7 +2,7 @@
 title: Introduction to Type-level Programming in Haskell
 author: Jan Šipr <br/>[github.com/siprj](https://github.com/siprj)
 
-date: April 14, 2019
+date: July 8, 2019
 ---
 
 
