@@ -77,7 +77,7 @@ serve :: HasServer api '[] => Proxy api -> Server api -> Application
 ## Before data kinds
 
 ``` { .haskell }
-data Foo a = Bar | Baz
+data Foo a = Bar | Baz a
 ```
 
 * `Foo a` is **type** constructor
@@ -159,7 +159,7 @@ constructors_** into **_type constructors_**, which also promotes their
 Just like standard data structures:
 
 ``` { .haskell }
-data Foo = Bar | Baz
+data Foo = Bar | Baz Foo
 ```
 
 ``` { .haskell }
