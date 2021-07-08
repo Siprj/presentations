@@ -1,0 +1,4 @@
+:set editor nvim
+:set -XTypeApplications
+:set prompt "\ESC[34mλ> \ESC[m"
+import Control.Monad.Trans.Maybe
